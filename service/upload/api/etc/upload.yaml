@@ -7,6 +7,6 @@ Auth:
   AccessExpire: 86400
 
 # 文件临时存储位置
-FileTempLocation: /
+FileTempLocation: /Users/liusaisai/workspace/goProject/src/fs-sys/tmp/files/
 
 

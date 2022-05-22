@@ -3,10 +3,12 @@ package logic
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"fs-sys/common/fileHash"
 	"fs-sys/service/upload/api/internal/model"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"fs-sys/service/upload/api/internal/svc"
@@ -53,7 +55,18 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 		UploadAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 	// 4. 将文件写入临时存储位置
-	fileMeta.Location =
+	fileMeta.Location = l.svcCtx.Config.FileTempLocation + fileMeta.FileHash
+	newFile, err := os.Create(fileMeta.Location)
+	if err != nil {
+		l.Logger.Error(fmt.Sprintf("文件创建失败: %s", err.Error()))
+		return nil, err
+	}
+	defer newFile.Close()
+	nByte, err := newFile.Write(buf.Bytes())
+	if int64(nByte) != fileMeta.FileSize || err != nil {
+		l.Logger.Error(fmt.Sprintf("文件写入失败: %s", err.Error()))
+		return nil, err
+	}
 	// 5. 同步或异步将文件转移到minio OSS
 	// 6. 更新文件表记录
 	// 7. 更新用户文件表
