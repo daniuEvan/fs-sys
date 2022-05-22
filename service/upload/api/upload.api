@@ -1,0 +1,63 @@
+syntax = "v1"
+
+type (
+	// 文件上传
+	UploadResponse {
+		UserID   int64  `json:"userId"`
+		FileName string `json:"fileName"`
+		FileHash string `json:"fileHash"`
+		FileSize string `json:"fileSize"`
+	}
+	// 秒传
+	FastUploadReq {
+		FileName string `json:"fileName"`
+		FileHash string `json:"fileHash"`
+	}
+
+	// 分块上传
+	MultipartUploadInitReq {
+		FileHash string `json:"fileHash"`
+		FileSize int64  `json:"fileSize"`
+	}
+	MultipartUploadInitRes {
+		FileHash   string `json:"fileHash"`
+		FileSize   int64  `json:"fileSize"`
+		UploadID   string `json:"uploadId"`
+		ChunkSize  int64  `json:"chunkSize"`
+		ChunkCount int64  `json:"chunkCount"`
+	}
+
+	MultipartUploadReq {
+		UploadId   string `json:"uploadId"`
+		ChunkIndex string `json:"chunkIndex"`
+	}
+
+	MultipartUploadMergeReq {
+		FileHash string `json:"fileHash"`
+		FileName string `json:"fileName"`
+		FileSize int64  `json:"fileSize"`
+		UploadID string `json:"uploadId"`
+	}
+)
+// 文件上传相关接口
+@server(
+	prefix: /api/v1
+	jwt: Auth
+)
+service Upload {
+	// 普通文件上传
+	@handler FileUpload
+	post /file/upload returns (UploadResponse)
+	
+	// 秒传接口
+	@handler FileFastUpload
+	post /file/fast_upload (FastUploadReq) returns (UploadResponse)
+	
+	// 分块上传接口
+	@handler FileMultipartInit
+	get /file/multipart/init (MultipartUploadInitReq) returns (MultipartUploadInitRes)
+	@handler FileMultipartUpload
+	post /file/multipart/upload (MultipartUploadReq)
+	@handler FileMultipartMerge
+	get /file/multipart/merge (MultipartUploadMergeReq)
+}

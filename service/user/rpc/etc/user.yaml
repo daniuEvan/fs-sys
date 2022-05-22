@@ -1,0 +1,19 @@
+Name: user.rpc
+ListenOn: 127.0.0.1:8080
+
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: user.rpc
+
+
+Mysql:
+  DataSource: admin:123456@tcp(127.0.0.1:3306)/fs_sys?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: localhost:6379
+    Type: node
+    Pass:
+
+# 加密盐
+Salt: 123poisdfWWWW@@HWVOFkGgPTryzICwd7qnJaZR9KQ2i8xe

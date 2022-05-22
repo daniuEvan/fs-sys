@@ -1,0 +1,47 @@
+syntax = "v1"
+
+type (
+	// 用户登录
+	LoginRequest {
+		Mobile   string `json:"mobile"`
+		Password string `json:"password"`
+	}
+	LoginResonse {
+		AccessToken  string `json:"accessToken"`
+		AccessExpire int64  `json:"accessExpire"`
+	}
+
+	// 用户注册
+	RegisterRequest {
+		Username string `json:"username"` // 用户名
+		Mobile   string `json:"mobile"`   // 用户电话
+		Password string `json:"password"`
+	}
+
+	// 用户信息
+	UserInfoResponse {
+		ID         int64  `json:"id"`
+		Username   string `json:"username"` // 用户名
+		Mobile     string `json:"mobile"`   // 用户电话
+		CreateTime int64  `json:"create_time"`
+		UpdateTime int64  `json:"update_time"`
+	}
+)
+
+@server(
+	jwt: Auth
+)
+service user-api {
+	//  获取用户信息
+	@handler UserInfo
+	post /api/v1/userinfo returns (UserInfoResponse)
+}
+
+service user-api {
+	//  登录
+	@handler Login
+	post /api/v1/login (LoginRequest) returns (LoginResonse)
+	//  注册
+	@handler Register
+	post /api/v1/register (RegisterRequest) returns (UserInfoResponse)
+}

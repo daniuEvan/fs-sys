@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package user;
+option go_package = "./user";
+
+// 用户信息
+message UserInfoRequest {
+  int64 Id = 1;
+}
+message UserInfoResponse{
+  int64 id = 1;
+  string username = 2;
+  string mobile = 3;
+  int64 createTime = 4;
+  int64 updateTime = 5;
+}
+// 登录
+message LoginRequest {
+  string mobile = 1;
+  string password = 2;
+}
+
+
+// 注册
+message RegisterRequest{
+  string username = 1;
+  string mobile = 2;
+  string password = 3;
+}
+
+// jwt 解析
+message JwtParseRequest{
+  string jwtStr  = 1;
+}
+
+message JwtParseResponse{
+  int64 status = 1;
+  int64 userId  = 2;
+  string username  = 3;
+  string mobile  = 4;
+}
+
+
+service User {
+  // 登录
+  rpc Login(LoginRequest) returns(UserInfoResponse);
+  // 注册
+  rpc Register(RegisterRequest) returns(UserInfoResponse);
+  // 用户信息
+  rpc UserInfo(UserInfoRequest) returns(UserInfoResponse);
+}
