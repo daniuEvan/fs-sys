@@ -6,6 +6,12 @@ Auth:
   AccessSecret: uOvKLmVfztaXGpNYd4Z0I1SiT7MweJhl
   AccessExpire: 86400
 
+UploadRpc:
+  Etcd:
+    Hosts:
+      - localhost:2379
+    Key: upload.rpc
+
 # 文件上传配置
 Uploader:
   AsyncUpload: false  # 异步上传
@@ -15,6 +21,7 @@ Uploader:
 
 # minio 配置信息
 Minio:
+  BucketName: fs-sys-bucket
   Endpoint: 127.0.0.1:9000
   AccessKey: yZ4src7sHwMVD1Vt
   SecretKey: de8xWNPIaxgR0IkjzOcsZSxcUrUshxqu

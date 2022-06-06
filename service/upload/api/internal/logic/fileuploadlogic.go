@@ -8,8 +8,7 @@ import (
 	"fs-sys/common/fileHash"
 	"fs-sys/common/utils"
 	"fs-sys/service/upload/api/internal/model"
-	"fs-sys/store/minioStore"
-	"github.com/minio/minio-go/v7"
+	"fs-sys/service/upload/rpc/upload"
 	"path"
 	"strconv"
 
@@ -89,53 +88,43 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 		l.Logger.Error(fmt.Sprintf("文件类型判断失败: %s", err.Error()))
 		return nil, err
 	}
-	fmt.Println(fileContentType)
+	fileMeta.FileContentType = fileContentType
 	// 5. 同步或异步将文件转移到minio OSS
-	minioClient, err := minioStore.NewMinioClient(
-		l.svcCtx.Config.Minio.Endpoint,
-		l.svcCtx.Config.Minio.AccessKey,
-		l.svcCtx.Config.Minio.SecretKey,
-		l.svcCtx.Config.Minio.UseSSL,
-	)
-	if err != nil {
-		l.Logger.Error(fmt.Sprintf("连接minio server 失败: %s", err.Error()))
-		return nil, err
-	}
-	// 判断是否存在Bucket, 不存在创建  todo 完善bucket 命名逻辑
-	bucketName := l.svcCtx.Config.Uploader.BucketName
-	found, err := minioClient.BucketExists(l.ctx, bucketName)
-	if err != nil {
-		l.Logger.Error(fmt.Sprintf("minio bucket 查询失败: %s", err.Error()))
-		return nil, err
-	}
-	if !found {
-		err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "ch-cd", ObjectLocking: false})
-		if err != nil {
-			l.Logger.Error(fmt.Sprintf("minio bucket 创建失败: %s", err.Error()))
-			return nil, err
-		}
-	}
 	// 判断写入oss是同步(直接上传)还是异步(写入异步队列中)
 	if !l.svcCtx.Config.Uploader.AsyncUpload {
-		info, err := minioClient.FPutObject(
-			l.ctx,
-			bucketName,
-			fileMeta.FileName,
-			fileMeta.Location,
-			minio.PutObjectOptions{ContentType: fileContentType},
-		)
+		info, err := l.svcCtx.UploadRpc.FileUpload(l.ctx, &upload.FileUploadRequest{
+			FileMeta: &upload.FileMeta{
+				FileHash:        fileMeta.FileHash,
+				FileName:        fileMeta.FileName,
+				FileContentType: fileMeta.FileContentType,
+				FileSize:        fileMeta.FileSize,
+				Location:        fileMeta.Location,
+				UploadAt:        fileMeta.UploadAt,
+			},
+			FileOSSMeta: &upload.FileOSSMeta{
+				BucketName: l.svcCtx.Config.Uploader.BucketName,
+				OssPath:    "", // todo oss 具体路径
+			},
+		})
 		if err != nil {
-			l.Logger.Error(fmt.Sprintf("minio 文件创建失败: %s", err.Error()))
+			l.Logger.Error(fmt.Sprintf("文件上传失败: %s", err.Error()))
 			return nil, err
 		}
-		fmt.Println(info)
+		l.Logger.Info(info)
+		// 6. 更新文件表记录
+
+		// 7. 更新用户文件表
+
+	} else { // 异步上传
+
+		// 6. 更新文件表记录
+
+		// 7. 更新用户文件表
 	}
-	// 6. 更新文件表记录
-	// 7. 更新用户文件表
 
 	userId, err := l.ctx.Value("userId").(json.Number).Int64()
 	if err != nil {
-		l.Logger.Error(fmt.Sprintf("登录异常: %s", err.Error()))
+		l.Logger.Error(fmt.Sprintf("获取用户id异常: %s", err.Error()))
 		return nil, err
 	}
 	//userId = json.Number(int64(userId))

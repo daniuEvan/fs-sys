@@ -1,0 +1,1 @@
+go run upload.go -f etc/upload.yaml

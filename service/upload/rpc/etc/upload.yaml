@@ -1,0 +1,14 @@
+Name: upload.rpc
+ListenOn: 127.0.0.1:8081
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: upload.rpc
+
+# minio 配置信息
+Minio:
+  BucketName: fs-sys-bucket  # 默认此名称, 如果http传BucketName参数,优先使用http参数
+  Endpoint: 127.0.0.1:9000
+  AccessKey: yZ4src7sHwMVD1Vt
+  SecretKey: de8xWNPIaxgR0IkjzOcsZSxcUrUshxqu
+  UseSSL: false

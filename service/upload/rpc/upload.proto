@@ -1,5 +1,50 @@
 syntax = "proto3";
 
 package upload;
-option go_package = "./user";
+option go_package = "./upload";
 
+// fileMeta 文件元信息
+message fileMeta {
+  string fileHash = 1 ;
+  string fileName = 2;
+  string  fileContentType = 3;
+  int64 fileSize = 4;
+  string location = 5;
+  string uploadAt = 6;
+}
+// fileOSSMeta 文件oss信息
+message fileOSSMeta {
+  string bucketName = 1;
+  string ossPath = 2;
+}
+
+
+// FileUploadRequest 文件上传
+message FileUploadRequest {
+   fileMeta fileMeta = 1;
+   fileOSSMeta fileOSSMeta = 2;
+}
+
+message FileUploadResponse {
+  string bucket = 1;
+  string  key = 2;
+  string eTag = 3;
+  int64  size = 4;
+  string lastModified = 5;
+  string location = 6;
+  string versionID = 7;
+
+  // Lifecycle expiry-date and ruleID associated with the expiry
+  // not to be confused with `Expires` HTTP header.
+  string expiration = 8;
+  string expirationRuleID = 9;
+}
+
+service Upload{
+  // FileUpload 文件上传
+  rpc FileUpload(FileUploadRequest) returns (FileUploadResponse);
+}
+
+// 更新用户表 todo 事务问题
+
+// 更新文件表 todo 事务问题
