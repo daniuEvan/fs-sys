@@ -8,5 +8,15 @@ type Config struct {
 		AccessSecret string
 		AccessExpire int64
 	}
-	FileTempLocation string
+	Uploader struct {
+		AsyncUpload      bool
+		FileTempLocation string
+		BucketName       string
+	}
+	Minio struct {
+		Endpoint  string
+		AccessKey string
+		SecretKey string
+		UseSSL    bool
+	}
 }

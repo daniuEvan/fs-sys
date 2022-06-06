@@ -6,7 +6,17 @@ Auth:
   AccessSecret: uOvKLmVfztaXGpNYd4Z0I1SiT7MweJhl
   AccessExpire: 86400
 
-# 文件临时存储位置
-FileTempLocation: /Users/liusaisai/workspace/goProject/src/fs-sys/tmp/files/
+# 文件上传配置
+Uploader:
+  AsyncUpload: false  # 异步上传
+  FileTempLocation: /Users/liusaisai/workspace/goProject/src/fs-sys/tmp/files  # 上传路径
+  BucketName: fs-sys-bucket
 
+
+# minio 配置信息
+Minio:
+  Endpoint: 127.0.0.1:9000
+  AccessKey: yZ4src7sHwMVD1Vt
+  SecretKey: de8xWNPIaxgR0IkjzOcsZSxcUrUshxqu
+  UseSSL: false
 
