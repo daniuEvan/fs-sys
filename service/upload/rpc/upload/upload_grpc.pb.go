@@ -24,6 +24,10 @@ const _ = grpc.SupportPackageIsVersion7
 type UploadClient interface {
 	// FileUpload 文件上传
 	FileUpload(ctx context.Context, in *FileUploadRequest, opts ...grpc.CallOption) (*FileUploadResponse, error)
+	// 更新文件表 todo 与更新用户表的事务问题
+	UpdateFileTable(ctx context.Context, in *FileMeta, opts ...grpc.CallOption) (*Empty, error)
+	// 更新用户文件表
+	UpdateUserTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type uploadClient struct {
@@ -43,12 +47,34 @@ func (c *uploadClient) FileUpload(ctx context.Context, in *FileUploadRequest, op
 	return out, nil
 }
 
+func (c *uploadClient) UpdateFileTable(ctx context.Context, in *FileMeta, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/upload.Upload/UpdateFileTable", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *uploadClient) UpdateUserTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/upload.Upload/UpdateUserTable", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UploadServer is the server API for Upload service.
 // All implementations must embed UnimplementedUploadServer
 // for forward compatibility
 type UploadServer interface {
 	// FileUpload 文件上传
 	FileUpload(context.Context, *FileUploadRequest) (*FileUploadResponse, error)
+	// 更新文件表 todo 与更新用户表的事务问题
+	UpdateFileTable(context.Context, *FileMeta) (*Empty, error)
+	// 更新用户文件表
+	UpdateUserTable(context.Context, *UserTableUpdateRequest) (*Empty, error)
 	mustEmbedUnimplementedUploadServer()
 }
 
@@ -58,6 +84,12 @@ type UnimplementedUploadServer struct {
 
 func (UnimplementedUploadServer) FileUpload(context.Context, *FileUploadRequest) (*FileUploadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FileUpload not implemented")
+}
+func (UnimplementedUploadServer) UpdateFileTable(context.Context, *FileMeta) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateFileTable not implemented")
+}
+func (UnimplementedUploadServer) UpdateUserTable(context.Context, *UserTableUpdateRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserTable not implemented")
 }
 func (UnimplementedUploadServer) mustEmbedUnimplementedUploadServer() {}
 
@@ -90,6 +122,42 @@ func _Upload_FileUpload_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Upload_UpdateFileTable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FileMeta)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UploadServer).UpdateFileTable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/upload.Upload/UpdateFileTable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UploadServer).UpdateFileTable(ctx, req.(*FileMeta))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Upload_UpdateUserTable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserTableUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UploadServer).UpdateUserTable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/upload.Upload/UpdateUserTable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UploadServer).UpdateUserTable(ctx, req.(*UserTableUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Upload_ServiceDesc is the grpc.ServiceDesc for Upload service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +168,14 @@ var Upload_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FileUpload",
 			Handler:    _Upload_FileUpload_Handler,
+		},
+		{
+			MethodName: "UpdateFileTable",
+			Handler:    _Upload_UpdateFileTable_Handler,
+		},
+		{
+			MethodName: "UpdateUserTable",
+			Handler:    _Upload_UpdateUserTable_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

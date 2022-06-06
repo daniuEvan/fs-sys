@@ -1,5 +1,15 @@
 Name: upload.rpc
 ListenOn: 127.0.0.1:8081
+
+# mysql
+Mysql:
+  DataSource: admin:123456@tcp(127.0.0.1:3306)/fs_sys?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: localhost:6379
+    Type: node
+    Pass:
+
 Etcd:
   Hosts:
     - 127.0.0.1:2379
@@ -12,3 +22,5 @@ Minio:
   AccessKey: yZ4src7sHwMVD1Vt
   SecretKey: de8xWNPIaxgR0IkjzOcsZSxcUrUshxqu
   UseSSL: false
+
+

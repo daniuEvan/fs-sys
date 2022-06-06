@@ -43,7 +43,6 @@ func (l *FileUploadLogic) FileUpload(in *upload.FileUploadRequest) (*upload.File
 	bucketName := in.FileOSSMeta.BucketName
 	if len(bucketName) < 1 {
 		bucketName = l.svcCtx.Config.Minio.BucketName
-
 	}
 	found, err := minioClient.BucketExists(l.ctx, bucketName)
 	if err != nil {

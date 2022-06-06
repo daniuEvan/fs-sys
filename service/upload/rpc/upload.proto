@@ -3,6 +3,8 @@ syntax = "proto3";
 package upload;
 option go_package = "./upload";
 
+message Empty {}
+
 // fileMeta 文件元信息
 message fileMeta {
   string fileHash = 1 ;
@@ -21,8 +23,8 @@ message fileOSSMeta {
 
 // FileUploadRequest 文件上传
 message FileUploadRequest {
-   fileMeta fileMeta = 1;
-   fileOSSMeta fileOSSMeta = 2;
+  fileMeta fileMeta = 1;
+  fileOSSMeta fileOSSMeta = 2;
 }
 
 message FileUploadResponse {
@@ -33,18 +35,32 @@ message FileUploadResponse {
   string lastModified = 5;
   string location = 6;
   string versionID = 7;
-
-  // Lifecycle expiry-date and ruleID associated with the expiry
-  // not to be confused with `Expires` HTTP header.
   string expiration = 8;
   string expirationRuleID = 9;
 }
 
-service Upload{
-  // FileUpload 文件上传
-  rpc FileUpload(FileUploadRequest) returns (FileUploadResponse);
+// 更新用户表
+message UserTableUpdateRequest{
+  int64 user_id = 1;
+  fileMeta fileMeta = 2;
+  fileOSSMeta fileOSSMeta = 3;
 }
 
-// 更新用户表 todo 事务问题
 
-// 更新文件表 todo 事务问题
+service Upload{
+  // FileUpload 文件上传
+  rpc FileUpload(FileUploadRequest) returns (FileUploadResponse){};
+
+  // 更新文件表 todo 与更新用户表的事务问题
+  rpc UpdateFileTable(fileMeta) returns (Empty){};
+
+  // 更新用户文件表
+  rpc UpdateUserTable(UserTableUpdateRequest) returns (Empty){};
+}
+
+
+
+
+
+
+

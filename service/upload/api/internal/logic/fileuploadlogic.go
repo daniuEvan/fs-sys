@@ -64,7 +64,6 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 		UploadAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 	// 4. 将文件写入临时存储位置
-
 	fileLocation := path.Join(
 		l.svcCtx.Config.Uploader.FileTempLocation,
 		fmt.Sprintf("%s-%s", fileMeta.FileHash, fileMeta.FileName),
@@ -89,13 +88,18 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 		return nil, err
 	}
 	fileMeta.FileContentType = fileContentType
+	userId, err := l.ctx.Value("userId").(json.Number).Int64()
+	if err != nil {
+		l.Logger.Error(fmt.Sprintf("获取用户id异常: %s", err.Error()))
+		return nil, err
+	}
 	// 5. 同步或异步将文件转移到minio OSS
 	// 判断写入oss是同步(直接上传)还是异步(写入异步队列中)
 	if !l.svcCtx.Config.Uploader.AsyncUpload {
 		info, err := l.svcCtx.UploadRpc.FileUpload(l.ctx, &upload.FileUploadRequest{
 			FileMeta: &upload.FileMeta{
 				FileHash:        fileMeta.FileHash,
-				FileName:        fileMeta.FileName,
+				FileName:        path.Join(time.Now().Format("2006-01-02"), fmt.Sprintf("%d", userId), fileMeta.FileName),
 				FileContentType: fileMeta.FileContentType,
 				FileSize:        fileMeta.FileSize,
 				Location:        fileMeta.Location,
@@ -110,10 +114,38 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 			l.Logger.Error(fmt.Sprintf("文件上传失败: %s", err.Error()))
 			return nil, err
 		}
-		l.Logger.Info(info)
+		//l.Logger.Info(info)
+		fileBucketName := info.Bucket
+		fileKey := info.Key
 		// 6. 更新文件表记录
-
+		_, err = l.svcCtx.UploadRpc.UpdateFileTable(l.ctx, &upload.FileMeta{
+			FileHash: fileMeta.FileHash,
+			FileName: fileMeta.FileName,
+			FileSize: fileMeta.FileSize,
+			Location: path.Join(fileBucketName, fileKey),
+		})
+		if err != nil {
+			l.Logger.Error(fmt.Sprintf("文件表更新失败: %s", err.Error()))
+			return nil, err
+		}
 		// 7. 更新用户文件表
+		_, err = l.svcCtx.UploadRpc.UpdateUserTable(l.ctx, &upload.UserTableUpdateRequest{
+			UserId: userId,
+			FileMeta: &upload.FileMeta{
+				FileHash: fileMeta.FileHash,
+				FileName: fileMeta.FileName,
+				FileSize: fileMeta.FileSize,
+				Location: path.Join(fileBucketName, fileKey),
+			},
+			FileOSSMeta: &upload.FileOSSMeta{
+				BucketName: fileBucketName,
+				OssPath:    path.Join(fileBucketName, fileKey),
+			},
+		})
+		if err != nil {
+			l.Logger.Error(fmt.Sprintf("文件表更新失败: %s", err.Error()))
+			return nil, err
+		}
 
 	} else { // 异步上传
 
@@ -122,11 +154,6 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 		// 7. 更新用户文件表
 	}
 
-	userId, err := l.ctx.Value("userId").(json.Number).Int64()
-	if err != nil {
-		l.Logger.Error(fmt.Sprintf("获取用户id异常: %s", err.Error()))
-		return nil, err
-	}
 	//userId = json.Number(int64(userId))
 	return &types.UploadResponse{
 		UserID:   userId,
