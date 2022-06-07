@@ -10,7 +10,6 @@ import (
 	"fs-sys/service/upload/api/internal/model"
 	"fs-sys/service/upload/rpc/upload"
 	"path"
-	"strconv"
 	"strings"
 
 	//"fs-sys/store/minioStore"
@@ -174,6 +173,6 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 		UserID:   userId,
 		FileName: fileMeta.FileName,
 		FileHash: fileMeta.FileHash,
-		FileSize: strconv.Itoa(int(fileMeta.FileSize)),
+		FileSize: fileMeta.FileSize,
 	}, nil
 }

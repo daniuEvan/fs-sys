@@ -18,6 +18,8 @@ type (
 		UpdateFileTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
 		//  更新用户文件表
 		UpdateUserTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
+		//  秒传
+		FastUpload(ctx context.Context, in *FastUploadRequest, opts ...grpc.CallOption) (*FastUploadResponse, error)
 	}
 
 	defaultUpload struct {
@@ -47,4 +49,10 @@ func (m *defaultUpload) UpdateFileTable(ctx context.Context, in *UserTableUpdate
 func (m *defaultUpload) UpdateUserTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error) {
 	client := NewUploadClient(m.cli.Conn())
 	return client.UpdateUserTable(ctx, in, opts...)
+}
+
+//  秒传
+func (m *defaultUpload) FastUpload(ctx context.Context, in *FastUploadRequest, opts ...grpc.CallOption) (*FastUploadResponse, error) {
+	client := NewUploadClient(m.cli.Conn())
+	return client.FastUpload(ctx, in, opts...)
 }

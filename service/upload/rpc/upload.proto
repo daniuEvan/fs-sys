@@ -41,10 +41,25 @@ message FileUploadResponse {
 
 // 更新用户表
 message UserTableUpdateRequest{
-  int64 user_id = 1;
+  int64 userId = 1;
   fileMeta fileMeta = 2;
   fileOSSMeta fileOSSMeta = 3;
 }
+
+//FastUpload
+message FastUploadRequest{
+  int64 userId = 1;
+  fileMeta fileMeta = 2;
+}
+
+enum Status {
+  SUCCESS = 0;
+  FAIL = 1;
+}
+message FastUploadResponse{
+  Status status = 1;
+}
+
 
 
 service Upload{
@@ -56,7 +71,12 @@ service Upload{
 
   // 更新用户文件表
   rpc UpdateUserTable(UserTableUpdateRequest) returns (Empty){};
+
+  // 秒传
+  rpc FastUpload(FastUploadRequest) returns(FastUploadResponse){};
 }
+
+
 
 
 

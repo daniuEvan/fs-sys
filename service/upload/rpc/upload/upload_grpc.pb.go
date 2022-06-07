@@ -28,6 +28,8 @@ type UploadClient interface {
 	UpdateFileTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
 	// 更新用户文件表
 	UpdateUserTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
+	// 秒传
+	FastUpload(ctx context.Context, in *FastUploadRequest, opts ...grpc.CallOption) (*FastUploadResponse, error)
 }
 
 type uploadClient struct {
@@ -65,6 +67,15 @@ func (c *uploadClient) UpdateUserTable(ctx context.Context, in *UserTableUpdateR
 	return out, nil
 }
 
+func (c *uploadClient) FastUpload(ctx context.Context, in *FastUploadRequest, opts ...grpc.CallOption) (*FastUploadResponse, error) {
+	out := new(FastUploadResponse)
+	err := c.cc.Invoke(ctx, "/upload.Upload/FastUpload", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UploadServer is the server API for Upload service.
 // All implementations must embed UnimplementedUploadServer
 // for forward compatibility
@@ -75,6 +86,8 @@ type UploadServer interface {
 	UpdateFileTable(context.Context, *UserTableUpdateRequest) (*Empty, error)
 	// 更新用户文件表
 	UpdateUserTable(context.Context, *UserTableUpdateRequest) (*Empty, error)
+	// 秒传
+	FastUpload(context.Context, *FastUploadRequest) (*FastUploadResponse, error)
 	mustEmbedUnimplementedUploadServer()
 }
 
@@ -90,6 +103,9 @@ func (UnimplementedUploadServer) UpdateFileTable(context.Context, *UserTableUpda
 }
 func (UnimplementedUploadServer) UpdateUserTable(context.Context, *UserTableUpdateRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserTable not implemented")
+}
+func (UnimplementedUploadServer) FastUpload(context.Context, *FastUploadRequest) (*FastUploadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FastUpload not implemented")
 }
 func (UnimplementedUploadServer) mustEmbedUnimplementedUploadServer() {}
 
@@ -158,6 +174,24 @@ func _Upload_UpdateUserTable_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Upload_FastUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FastUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UploadServer).FastUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/upload.Upload/FastUpload",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UploadServer).FastUpload(ctx, req.(*FastUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Upload_ServiceDesc is the grpc.ServiceDesc for Upload service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -176,6 +210,10 @@ var Upload_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUserTable",
 			Handler:    _Upload_UpdateUserTable_Handler,
+		},
+		{
+			MethodName: "FastUpload",
+			Handler:    _Upload_FastUpload_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

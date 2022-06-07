@@ -6,7 +6,7 @@ type (
 		UserID   int64  `json:"userId"`
 		FileName string `json:"fileName"`
 		FileHash string `json:"fileHash"`
-		FileSize string `json:"fileSize"`
+		FileSize int64  `json:"fileSize"`
 	}
 	// 秒传
 	FastUploadReq {
@@ -51,7 +51,7 @@ service Upload {
 	
 	// 秒传接口
 	@handler FileFastUpload
-	post /file/fast_upload (FastUploadReq) returns (UploadResponse)
+	post /file/fast_upload () returns (UploadResponse)
 	
 	// 分块上传接口
 	@handler FileMultipartInit

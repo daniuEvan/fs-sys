@@ -39,3 +39,9 @@ func (s *UploadServer) UpdateUserTable(ctx context.Context, in *upload.UserTable
 	l := logic.NewUpdateUserTableLogic(ctx, s.svcCtx)
 	return l.UpdateUserTable(in)
 }
+
+//  秒传
+func (s *UploadServer) FastUpload(ctx context.Context, in *upload.FastUploadRequest) (*upload.FastUploadResponse, error) {
+	l := logic.NewFastUploadLogic(ctx, s.svcCtx)
+	return l.FastUpload(in)
+}

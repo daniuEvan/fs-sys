@@ -5,7 +5,7 @@ type UploadResponse struct {
 	UserID   int64  `json:"userId"`
 	FileName string `json:"fileName"`
 	FileHash string `json:"fileHash"`
-	FileSize string `json:"fileSize"`
+	FileSize int64  `json:"fileSize"`
 }
 
 type FastUploadReq struct {
