@@ -43,7 +43,6 @@ type (
 	FsFiles struct {
 		Id         int64     `db:"id"`
 		FileHash   string    `db:"file_hash"` // 文件hash
-		FileName   string    `db:"file_name"` // 文件名
 		FileSize   int64     `db:"file_size"` // 文件大小
 		FileAddr   string    `db:"file_addr"` // 文件存储位置
 		CreateTime time.Time `db:"create_time"`
@@ -63,8 +62,8 @@ func (m *defaultFsFilesModel) Insert(ctx context.Context, data *FsFiles) (sql.Re
 	fsFilesIdKey := fmt.Sprintf("%s%v", cacheFsFilesIdPrefix, data.Id)
 	fsFilesFileHashKey := fmt.Sprintf("%s%v", cacheFsFilesFileHashPrefix, data.FileHash)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, fsFilesRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.FileHash, data.FileName, data.FileSize, data.FileAddr, data.Status)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, fsFilesRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.FileHash, data.FileSize, data.FileAddr, data.Status)
 	}, fsFilesIdKey, fsFilesFileHashKey)
 	return ret, err
 }
@@ -107,11 +106,11 @@ func (m *defaultFsFilesModel) FindOneByFileHash(ctx context.Context, fileHash st
 }
 
 func (m *defaultFsFilesModel) Update(ctx context.Context, data *FsFiles) error {
-	fsFilesIdKey := fmt.Sprintf("%s%v", cacheFsFilesIdPrefix, data.Id)
 	fsFilesFileHashKey := fmt.Sprintf("%s%v", cacheFsFilesFileHashPrefix, data.FileHash)
+	fsFilesIdKey := fmt.Sprintf("%s%v", cacheFsFilesIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, fsFilesRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.FileHash, data.FileName, data.FileSize, data.FileAddr, data.Status, data.Id)
+		return conn.ExecCtx(ctx, query, data.FileHash, data.FileSize, data.FileAddr, data.Status, data.Id)
 	}, fsFilesIdKey, fsFilesFileHashKey)
 	return err
 }

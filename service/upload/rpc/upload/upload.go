@@ -15,7 +15,7 @@ type (
 		//  FileUpload 文件上传
 		FileUpload(ctx context.Context, in *FileUploadRequest, opts ...grpc.CallOption) (*FileUploadResponse, error)
 		//  更新文件表 todo 与更新用户表的事务问题
-		UpdateFileTable(ctx context.Context, in *FileMeta, opts ...grpc.CallOption) (*Empty, error)
+		UpdateFileTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
 		//  更新用户文件表
 		UpdateUserTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
 	}
@@ -38,7 +38,7 @@ func (m *defaultUpload) FileUpload(ctx context.Context, in *FileUploadRequest, o
 }
 
 //  更新文件表 todo 与更新用户表的事务问题
-func (m *defaultUpload) UpdateFileTable(ctx context.Context, in *FileMeta, opts ...grpc.CallOption) (*Empty, error) {
+func (m *defaultUpload) UpdateFileTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error) {
 	client := NewUploadClient(m.cli.Conn())
 	return client.UpdateFileTable(ctx, in, opts...)
 }

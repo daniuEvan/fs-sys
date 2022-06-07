@@ -29,7 +29,7 @@ func (s *UploadServer) FileUpload(ctx context.Context, in *upload.FileUploadRequ
 }
 
 //  更新文件表 todo 与更新用户表的事务问题
-func (s *UploadServer) UpdateFileTable(ctx context.Context, in *upload.FileMeta) (*upload.Empty, error) {
+func (s *UploadServer) UpdateFileTable(ctx context.Context, in *upload.UserTableUpdateRequest) (*upload.Empty, error) {
 	l := logic.NewUpdateFileTableLogic(ctx, s.svcCtx)
 	return l.UpdateFileTable(in)
 }

@@ -22,15 +22,15 @@ var (
 	fsUserFileRowsExpectAutoSet   = strings.Join(stringx.Remove(fsUserFileFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
 	fsUserFileRowsWithPlaceHolder = strings.Join(stringx.Remove(fsUserFileFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
 
-	cacheFsUserFileIdPrefix             = "cache:fsUserFile:id:"
-	cacheFsUserFileUserIdFileHashPrefix = "cache:fsUserFile:userId:fileHash:"
+	cacheFsUserFileIdPrefix                     = "cache:fsUserFile:id:"
+	cacheFsUserFileUserIdFileHashFileNamePrefix = "cache:fsUserFile:userId:fileHash:fileName:"
 )
 
 type (
 	fsUserFileModel interface {
 		Insert(ctx context.Context, data *FsUserFile) (sql.Result, error)
 		FindOne(ctx context.Context, id int64) (*FsUserFile, error)
-		FindOneByUserIdFileHash(ctx context.Context, userId int64, fileHash string) (*FsUserFile, error)
+		FindOneByUserIdFileHashFileName(ctx context.Context, userId int64, fileHash string, fileName string) (*FsUserFile, error)
 		Update(ctx context.Context, data *FsUserFile) error
 		Delete(ctx context.Context, id int64) error
 	}
@@ -61,11 +61,11 @@ func newFsUserFileModel(conn sqlx.SqlConn, c cache.CacheConf) *defaultFsUserFile
 
 func (m *defaultFsUserFileModel) Insert(ctx context.Context, data *FsUserFile) (sql.Result, error) {
 	fsUserFileIdKey := fmt.Sprintf("%s%v", cacheFsUserFileIdPrefix, data.Id)
-	fsUserFileUserIdFileHashKey := fmt.Sprintf("%s%v:%v", cacheFsUserFileUserIdFileHashPrefix, data.UserId, data.FileHash)
+	fsUserFileUserIdFileHashFileNameKey := fmt.Sprintf("%s%v:%v:%v", cacheFsUserFileUserIdFileHashFileNamePrefix, data.UserId, data.FileHash, data.FileName)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, fsUserFileRowsExpectAutoSet)
 		return conn.ExecCtx(ctx, query, data.UserId, data.FileHash, data.FileSize, data.FileName, data.Status)
-	}, fsUserFileIdKey, fsUserFileUserIdFileHashKey)
+	}, fsUserFileIdKey, fsUserFileUserIdFileHashFileNameKey)
 	return ret, err
 }
 
@@ -86,12 +86,12 @@ func (m *defaultFsUserFileModel) FindOne(ctx context.Context, id int64) (*FsUser
 	}
 }
 
-func (m *defaultFsUserFileModel) FindOneByUserIdFileHash(ctx context.Context, userId int64, fileHash string) (*FsUserFile, error) {
-	fsUserFileUserIdFileHashKey := fmt.Sprintf("%s%v:%v", cacheFsUserFileUserIdFileHashPrefix, userId, fileHash)
+func (m *defaultFsUserFileModel) FindOneByUserIdFileHashFileName(ctx context.Context, userId int64, fileHash string, fileName string) (*FsUserFile, error) {
+	fsUserFileUserIdFileHashFileNameKey := fmt.Sprintf("%s%v:%v:%v", cacheFsUserFileUserIdFileHashFileNamePrefix, userId, fileHash, fileName)
 	var resp FsUserFile
-	err := m.QueryRowIndexCtx(ctx, &resp, fsUserFileUserIdFileHashKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
-		query := fmt.Sprintf("select %s from %s where `user_id` = ? and `file_hash` = ? limit 1", fsUserFileRows, m.table)
-		if err := conn.QueryRowCtx(ctx, &resp, query, userId, fileHash); err != nil {
+	err := m.QueryRowIndexCtx(ctx, &resp, fsUserFileUserIdFileHashFileNameKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+		query := fmt.Sprintf("select %s from %s where `user_id` = ? and `file_hash` = ? and `file_name` = ? limit 1", fsUserFileRows, m.table)
+		if err := conn.QueryRowCtx(ctx, &resp, query, userId, fileHash, fileName); err != nil {
 			return nil, err
 		}
 		return resp.Id, nil
@@ -108,11 +108,11 @@ func (m *defaultFsUserFileModel) FindOneByUserIdFileHash(ctx context.Context, us
 
 func (m *defaultFsUserFileModel) Update(ctx context.Context, data *FsUserFile) error {
 	fsUserFileIdKey := fmt.Sprintf("%s%v", cacheFsUserFileIdPrefix, data.Id)
-	fsUserFileUserIdFileHashKey := fmt.Sprintf("%s%v:%v", cacheFsUserFileUserIdFileHashPrefix, data.UserId, data.FileHash)
+	fsUserFileUserIdFileHashFileNameKey := fmt.Sprintf("%s%v:%v:%v", cacheFsUserFileUserIdFileHashFileNamePrefix, data.UserId, data.FileHash, data.FileName)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, fsUserFileRowsWithPlaceHolder)
 		return conn.ExecCtx(ctx, query, data.UserId, data.FileHash, data.FileSize, data.FileName, data.Status, data.Id)
-	}, fsUserFileUserIdFileHashKey, fsUserFileIdKey)
+	}, fsUserFileIdKey, fsUserFileUserIdFileHashFileNameKey)
 	return err
 }
 
@@ -123,11 +123,11 @@ func (m *defaultFsUserFileModel) Delete(ctx context.Context, id int64) error {
 	}
 
 	fsUserFileIdKey := fmt.Sprintf("%s%v", cacheFsUserFileIdPrefix, id)
-	fsUserFileUserIdFileHashKey := fmt.Sprintf("%s%v:%v", cacheFsUserFileUserIdFileHashPrefix, data.UserId, data.FileHash)
+	fsUserFileUserIdFileHashFileNameKey := fmt.Sprintf("%s%v:%v:%v", cacheFsUserFileUserIdFileHashFileNamePrefix, data.UserId, data.FileHash, data.FileName)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, fsUserFileIdKey, fsUserFileUserIdFileHashKey)
+	}, fsUserFileIdKey, fsUserFileUserIdFileHashFileNameKey)
 	return err
 }
 

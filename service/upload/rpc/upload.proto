@@ -52,7 +52,7 @@ service Upload{
   rpc FileUpload(FileUploadRequest) returns (FileUploadResponse){};
 
   // 更新文件表 todo 与更新用户表的事务问题
-  rpc UpdateFileTable(fileMeta) returns (Empty){};
+  rpc UpdateFileTable(UserTableUpdateRequest) returns (Empty){};
 
   // 更新用户文件表
   rpc UpdateUserTable(UserTableUpdateRequest) returns (Empty){};

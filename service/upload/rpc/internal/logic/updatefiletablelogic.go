@@ -23,16 +23,14 @@ func NewUpdateFileTableLogic(ctx context.Context, svcCtx *svc.ServiceContext) *U
 }
 
 // UpdateFileTable 更新文件表 todo 与更新用户表的事务问题
-func (l *UpdateFileTableLogic) UpdateFileTable(in *upload.FileMeta) (*upload.Empty, error) {
+func (l *UpdateFileTableLogic) UpdateFileTable(in *upload.UserTableUpdateRequest) (*upload.Empty, error) {
 	filesInfo := model.FsFiles{
-		FileHash: in.FileHash,
-		FileName: in.FileName,
-		FileSize: in.FileSize,
-		FileAddr: in.Location,
+		FileHash: in.FileMeta.FileHash,
+		FileSize: in.FileMeta.FileSize,
+		FileAddr: in.FileOSSMeta.OssPath,
 		Status:   0,
 	}
-
-	_, err := l.svcCtx.FilesTableModel.FindOneByFileHash(l.ctx, in.FileHash)
+	_, err := l.svcCtx.FilesTableModel.FindOneByFileHash(l.ctx, in.FileMeta.FileHash)
 	if err == model.ErrNotFound {
 		_, err = l.svcCtx.FilesTableModel.Insert(l.ctx, &filesInfo)
 		if err != nil {

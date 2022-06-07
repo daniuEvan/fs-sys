@@ -11,6 +11,7 @@ import (
 	"fs-sys/service/upload/rpc/upload"
 	"path"
 	"strconv"
+	"strings"
 
 	//"fs-sys/store/minioStore"
 	//"github.com/minio/minio-go/v7"
@@ -94,12 +95,20 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 		return nil, err
 	}
 	// 5. 同步或异步将文件转移到minio OSS
+	// 凭据oss文件路径
+	fileNameSlice := strings.Split(fileMeta.FileName, ".")
+	fileSuffix := fileNameSlice[len(fileNameSlice)-1]
+	ossFileName := path.Join(
+		time.Now().Format("2006-01-02"),
+		fmt.Sprintf("%d", userId),
+		fmt.Sprintf("%s.%s", fileMeta.FileHash, fileSuffix),
+	)
 	// 判断写入oss是同步(直接上传)还是异步(写入异步队列中)
 	if !l.svcCtx.Config.Uploader.AsyncUpload {
 		info, err := l.svcCtx.UploadRpc.FileUpload(l.ctx, &upload.FileUploadRequest{
 			FileMeta: &upload.FileMeta{
 				FileHash:        fileMeta.FileHash,
-				FileName:        path.Join(time.Now().Format("2006-01-02"), fmt.Sprintf("%d", userId), fileMeta.FileName),
+				FileName:        ossFileName,
 				FileContentType: fileMeta.FileContentType,
 				FileSize:        fileMeta.FileSize,
 				Location:        fileMeta.Location,
@@ -107,7 +116,6 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 			},
 			FileOSSMeta: &upload.FileOSSMeta{
 				BucketName: l.svcCtx.Config.Uploader.BucketName,
-				OssPath:    "", // todo oss 具体路径
 			},
 		})
 		if err != nil {
@@ -118,11 +126,18 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 		fileBucketName := info.Bucket
 		fileKey := info.Key
 		// 6. 更新文件表记录
-		_, err = l.svcCtx.UploadRpc.UpdateFileTable(l.ctx, &upload.FileMeta{
-			FileHash: fileMeta.FileHash,
-			FileName: fileMeta.FileName,
-			FileSize: fileMeta.FileSize,
-			Location: path.Join(fileBucketName, fileKey),
+		_, err = l.svcCtx.UploadRpc.UpdateFileTable(l.ctx, &upload.UserTableUpdateRequest{
+			UserId: userId,
+			FileMeta: &upload.FileMeta{
+				FileHash: fileMeta.FileHash,
+				FileName: fileMeta.FileName,
+				FileSize: fileMeta.FileSize,
+				Location: fileMeta.Location,
+			},
+			FileOSSMeta: &upload.FileOSSMeta{
+				BucketName: fileBucketName,
+				OssPath:    path.Join(fileBucketName, fileKey),
+			},
 		})
 		if err != nil {
 			l.Logger.Error(fmt.Sprintf("文件表更新失败: %s", err.Error()))
@@ -135,7 +150,7 @@ func (l *FileUploadLogic) FileUpload() (resp *types.UploadResponse, err error) {
 				FileHash: fileMeta.FileHash,
 				FileName: fileMeta.FileName,
 				FileSize: fileMeta.FileSize,
-				Location: path.Join(fileBucketName, fileKey),
+				Location: fileMeta.Location,
 			},
 			FileOSSMeta: &upload.FileOSSMeta{
 				BucketName: fileBucketName,

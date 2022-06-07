@@ -25,7 +25,7 @@ type UploadClient interface {
 	// FileUpload 文件上传
 	FileUpload(ctx context.Context, in *FileUploadRequest, opts ...grpc.CallOption) (*FileUploadResponse, error)
 	// 更新文件表 todo 与更新用户表的事务问题
-	UpdateFileTable(ctx context.Context, in *FileMeta, opts ...grpc.CallOption) (*Empty, error)
+	UpdateFileTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
 	// 更新用户文件表
 	UpdateUserTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error)
 }
@@ -47,7 +47,7 @@ func (c *uploadClient) FileUpload(ctx context.Context, in *FileUploadRequest, op
 	return out, nil
 }
 
-func (c *uploadClient) UpdateFileTable(ctx context.Context, in *FileMeta, opts ...grpc.CallOption) (*Empty, error) {
+func (c *uploadClient) UpdateFileTable(ctx context.Context, in *UserTableUpdateRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/upload.Upload/UpdateFileTable", in, out, opts...)
 	if err != nil {
@@ -72,7 +72,7 @@ type UploadServer interface {
 	// FileUpload 文件上传
 	FileUpload(context.Context, *FileUploadRequest) (*FileUploadResponse, error)
 	// 更新文件表 todo 与更新用户表的事务问题
-	UpdateFileTable(context.Context, *FileMeta) (*Empty, error)
+	UpdateFileTable(context.Context, *UserTableUpdateRequest) (*Empty, error)
 	// 更新用户文件表
 	UpdateUserTable(context.Context, *UserTableUpdateRequest) (*Empty, error)
 	mustEmbedUnimplementedUploadServer()
@@ -85,7 +85,7 @@ type UnimplementedUploadServer struct {
 func (UnimplementedUploadServer) FileUpload(context.Context, *FileUploadRequest) (*FileUploadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FileUpload not implemented")
 }
-func (UnimplementedUploadServer) UpdateFileTable(context.Context, *FileMeta) (*Empty, error) {
+func (UnimplementedUploadServer) UpdateFileTable(context.Context, *UserTableUpdateRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateFileTable not implemented")
 }
 func (UnimplementedUploadServer) UpdateUserTable(context.Context, *UserTableUpdateRequest) (*Empty, error) {
@@ -123,7 +123,7 @@ func _Upload_FileUpload_Handler(srv interface{}, ctx context.Context, dec func(i
 }
 
 func _Upload_UpdateFileTable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FileMeta)
+	in := new(UserTableUpdateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func _Upload_UpdateFileTable_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/upload.Upload/UpdateFileTable",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UploadServer).UpdateFileTable(ctx, req.(*FileMeta))
+		return srv.(UploadServer).UpdateFileTable(ctx, req.(*UserTableUpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
