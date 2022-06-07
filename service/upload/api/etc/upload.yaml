@@ -2,6 +2,9 @@ Name: Upload
 Host: 0.0.0.0
 Port: 8881
 
+MaxBytes: 8388608  # http可接受请求的最大ContentLength，默认1048576，被设置值必须在0到8388608之间
+Timeout: 10000 # 超时时长控制，单位：毫秒，默认3000
+
 Auth:
   AccessSecret: uOvKLmVfztaXGpNYd4Z0I1SiT7MweJhl
   AccessExpire: 86400

@@ -7,6 +7,7 @@ import (
 	"fs-sys/service/upload/api/internal/config"
 	"fs-sys/service/upload/api/internal/handler"
 	"fs-sys/service/upload/api/internal/svc"
+	"github.com/zeromicro/go-zero/core/logx"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
@@ -16,7 +17,7 @@ var configFile = flag.String("f", "etc/upload.yaml", "the config file")
 
 func main() {
 	flag.Parse()
-
+	logx.DisableStat()
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
